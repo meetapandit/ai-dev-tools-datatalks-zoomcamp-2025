@@ -1,0 +1,15 @@
+{% extends 'todos/base.html' %}
+
+{% block title %}Delete Todo{% endblock %}
+
+{% block content %}
+<h1>Delete Todo</h1>
+<div style="margin-top: 20px;">
+    <p>Are you sure you want to delete the todo: <strong>{{ object.title }}</strong>?</p>
+    <form method="post" style="margin-top: 20px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'todo_list' %}" class="btn" style="margin-left: 10px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'todos/base.html' %}
+
+{% block title %}Todo List{% endblock %}
+
+{% block content %}
+<h1>My Todo List</h1>
+<a href="{% url 'todo_create' %}" class="btn">Add New Todo</a>
+<hr style="margin: 20px 0;">
+
+{% if todos %}
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #f8f9fa;">
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Title</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Due Date</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Status</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for todo in todos %}
+        <tr style="{% if todo.is_resolved %}opacity: 0.6; text-decoration: line-through;{% endif %}">
+            <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                {{ todo.title }}
+                {% if todo.description %}
+                <br><small style="color: #6c757d;">{{ todo.description|truncatewords:10 }}</small>
+                {% endif %}
+            </td>
+            <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                {% if todo.due_date %}
+                    {{ todo.due_date|date:"M d, Y" }}
+                {% else %}
+                    <span style="color: #6c757d;">No due date</span>
+                {% endif %}
+            </td>
+            <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                {% if todo.is_resolved %}
+                    <span style="color: #28a745; font-weight: bold;">Resolved</span>
+                {% else %}
+                    <span style="color: #ffc107; font-weight: bold;">Pending</span>
+                {% endif %}
+            </td>
+            <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                <a href="{% url 'todo_toggle' todo.pk %}" class="btn btn-warning" style="margin-right: 5px;">
+                    {% if todo.is_resolved %}Unresolve{% else %}Resolve{% endif %}
+                </a>
+                <a href="{% url 'todo_update' todo.pk %}" class="btn" style="margin-right: 5px;">Edit</a>
+                <a href="{% url 'todo_delete' todo.pk %}" class="btn btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="margin-top: 20px; color: #6c757d;">No todos yet. Create your first one!</p>
+{% endif %}
+{% endblock %}
