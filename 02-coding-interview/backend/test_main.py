@@ -20,4 +20,17 @@ def test_read_problem_not_found():
 def test_submit_code():
     response = client.post("/submit", json={"code": "print('hello')", "language": "python"})
     assert response.status_code == 200
-    assert response.json()["status"] == "success"
+    # Note: Status changed to browser-only in recent update
+    assert response.json()["status"] == "browser-only"
+
+def test_websocket_connection():
+    with client.websocket_connect("/ws/1") as websocket:
+        websocket.send_text("Hello")
+        # No broadcast back to sender in our logic, but connection shouldn't fail
+
+def test_websocket_broadcast():
+    with client.websocket_connect("/ws/test-room") as ws1:
+        with client.websocket_connect("/ws/test-room") as ws2:
+            ws1.send_text("Hello from ws1")
+            data = ws2.receive_text()
+            assert data == "Hello from ws1"
