@@ -4,9 +4,7 @@ import Editor from '@monaco-editor/react';
 
 const LANGUAGES = [
     { id: 'python', name: 'Python' },
-    { id: 'javascript', name: 'JavaScript' },
-    { id: 'java', name: 'Java' },
-    { id: 'go', name: 'Go' }
+    { id: 'javascript', name: 'JavaScript' }
 ];
 
 export default function ProblemDetail() {
