@@ -28,5 +28,9 @@ RUN uv sync
 # Expose port
 EXPOSE 8000
 
-# Run the application (Railway will set PORT env var)
-CMD ["sh", "-c", "uv run fastapi run main.py --host 0.0.0.0 --port ${PORT:-8000}"]
+# Copy and use entrypoint script
+COPY backend/entrypoint.sh /app/backend/entrypoint.sh
+RUN chmod +x /app/backend/entrypoint.sh
+
+# Run the application using entrypoint script
+CMD ["/app/backend/entrypoint.sh"]
