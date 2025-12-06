@@ -23,7 +23,7 @@ export default function ProblemDetail() {
 
     // Load Problem
     useEffect(() => {
-        fetch(`http://localhost:8000/problems/${id}`)
+        fetch(`/problems/${id}`)
             .then(res => res.json())
             .then(data => {
                 setProblem(data);
@@ -58,7 +58,9 @@ export default function ProblemDetail() {
 
     // WebSocket Connection
     useEffect(() => {
-        ws.current = new WebSocket(`ws://localhost:8000/ws/${id}`);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/${id}`;
+        ws.current = new WebSocket(wsUrl);
 
         ws.current.onopen = () => {
             console.log('Connected to WebSocket');

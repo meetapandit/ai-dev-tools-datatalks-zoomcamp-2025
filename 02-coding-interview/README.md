@@ -57,6 +57,17 @@ A real-time collaborative coding interview platform built with **FastAPI** (Back
    cd frontend && npm run dev
    ```
 
+## Docker Deployment
+
+Build and run the application in a single container:
+
+```bash
+docker build -t coding-interview-platform .
+docker run -p 8000:8000 coding-interview-platform
+```
+
+Access the application at `http://localhost:8000`.
+
 ## Running Tests
 
 ### Backend Integration Tests

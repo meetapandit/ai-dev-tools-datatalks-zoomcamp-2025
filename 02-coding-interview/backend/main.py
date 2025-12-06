@@ -1,13 +1,17 @@
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import List, Dict
 from models import Problem, CodeSubmission, ExecutionResult
+from pathlib import Path
 
 app = FastAPI()
 
+# Update CORS to allow all origins in production (or configure as needed)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # Vite default port
+    allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -90,3 +94,16 @@ def get_problem(problem_id: str):
 def submit_code(submission: CodeSubmission):
     # Mock execution (will be replaced by frontend execution, but keeping API for compatibility or logging)
     return ExecutionResult(output="Execution moved to browser (Pyodide)\n", status="browser-only")
+
+# Serve static files (frontend build)
+static_dir = Path(__file__).parent.parent / "frontend" / "dist"
+if static_dir.exists():
+    app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Serve index.html for all non-API routes (SPA fallback)
+        file_path = static_dir / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(static_dir / "index.html")

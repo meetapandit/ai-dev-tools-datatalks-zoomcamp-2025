@@ -5,7 +5,7 @@ export default function ProblemList() {
     const [problems, setProblems] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:8000/problems')
+        fetch('/problems')
             .then(res => res.json())
             .then(data => setProblems(data))
             .catch(err => console.error(err));
