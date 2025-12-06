@@ -59,14 +59,24 @@ A real-time collaborative coding interview platform built with **FastAPI** (Back
 
 ## Docker Deployment
 
-Build and run the application in a single container:
+Build and run the application using Docker Compose:
 
+```bash
+docker-compose up --build
+```
+
+Access the application at `http://localhost:8000`.
+
+To stop:
+```bash
+docker-compose down
+```
+
+### Alternative (Manual Docker)
 ```bash
 docker build -t coding-interview-platform .
 docker run -p 8000:8000 coding-interview-platform
 ```
-
-Access the application at `http://localhost:8000`.
 
 ## Running Tests
 
