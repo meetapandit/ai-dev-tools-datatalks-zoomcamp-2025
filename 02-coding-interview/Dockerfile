@@ -28,5 +28,5 @@ RUN uv sync
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["uv", "run", "fastapi", "run", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application (Railway will set PORT env var)
+CMD ["sh", "-c", "uv run fastapi run main.py --host 0.0.0.0 --port ${PORT:-8000}"]

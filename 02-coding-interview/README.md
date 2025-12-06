@@ -78,6 +78,18 @@ docker build -t coding-interview-platform .
 docker run -p 8000:8000 coding-interview-platform
 ```
 
+## Railway Deployment
+
+Deploy to Railway's free tier:
+
+1. Push your code to GitHub
+2. Go to [railway.app](https://railway.app) and sign in
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select this repository
+5. Railway will auto-detect the Dockerfile and deploy
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
 ## Running Tests
 
 ### Backend Integration Tests
