@@ -140,15 +140,9 @@ export default function ProblemDetail() {
                 }
 
             } else {
-                // Server-side execution (Mock)
-                const res = await fetch('http://localhost:8000/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, language })
-                });
-                const data = await res.json();
-                setOutput(data.output);
-                setStatus(data.status);
+                // Enforce browser-only execution
+                setOutput(`Browser-side execution for ${LANGUAGES.find(l => l.id === language)?.name} is not implemented yet.\n\nPlease select Python or JavaScript to execute code in the browser.`);
+                setStatus('Not Supported');
             }
 
         } catch (err) {
