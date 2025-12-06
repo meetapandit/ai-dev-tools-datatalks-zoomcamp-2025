@@ -2,12 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 
+const LANGUAGES = [
+    { id: 'python', name: 'Python' },
+    { id: 'javascript', name: 'JavaScript' },
+    { id: 'java', name: 'Java' },
+    { id: 'go', name: 'Go' }
+];
+
 export default function ProblemDetail() {
     const { id } = useParams();
     const [problem, setProblem] = useState(null);
     const [code, setCode] = useState('');
     const [output, setOutput] = useState('');
     const [status, setStatus] = useState('');
+    const [language, setLanguage] = useState('python');
+
     const [pyodide, setPyodide] = useState(null);
     const [pyodideLoading, setPyodideLoading] = useState(true);
 
@@ -20,21 +29,29 @@ export default function ProblemDetail() {
             .then(res => res.json())
             .then(data => {
                 setProblem(data);
-                if (!code) setCode(data.initial_code);
+                // Set initial code for default language (python)
+                if (data.starter_codes && data.starter_codes['python']) {
+                    setCode(data.starter_codes['python']);
+                }
             })
             .catch(err => console.error(err));
     }, [id]);
 
-    // Load Pyodide
+    // Load Pyodide (only once)
     useEffect(() => {
         async function initPyodide() {
             try {
-                const py = await window.loadPyodide();
-                setPyodide(py);
+                if (!window.pyodide) { // Check if already loaded to avoid errors
+                    const py = await window.loadPyodide();
+                    window.pyodide = py; // Cache in window
+                    setPyodide(py);
+                } else {
+                    setPyodide(window.pyodide);
+                }
                 setPyodideLoading(false);
             } catch (e) {
                 console.error("Failed to load pyodide", e);
-                setStatus("Failed to load Python environment");
+                // Don't set error status globally, just for Pyodide features
                 setPyodideLoading(false);
             }
         }
@@ -50,10 +67,14 @@ export default function ProblemDetail() {
         };
 
         ws.current.onmessage = (event) => {
-            const newCode = event.data;
-            if (newCode !== code) {
-                isLocalChange.current = false;
-                setCode(newCode);
+            const data = JSON.parse(event.data);
+            // Only update if it's for the current language
+            if (data.language === language) {
+                const newCode = data.code;
+                if (newCode !== code) {
+                    isLocalChange.current = false;
+                    setCode(newCode);
+                }
             }
         };
 
@@ -62,40 +83,74 @@ export default function ProblemDetail() {
                 ws.current.close();
             }
         };
-    }, [id]);
+    }, [id, language]); // Re-connect or at least re-bind listener if logic depended on state, but here simple broadcast
 
     const handleEditorChange = (value) => {
-        if (isLocalChange.current === false) {
-            isLocalChange.current = true; // Reset flag if it was an external update
-            return;
-        }
         setCode(value);
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            // Simple broadcast, in production use debouncing
-            ws.current.send(value);
+            // Send object with language
+            ws.current.send(JSON.stringify({ code: value, language: language }));
         }
     };
 
-    // Fix for the loop issue: We need to know if the change to `code` came from user typing or WebSocket.
-    // The `Editor` component's `onChange` is triggered by user.
-    // When we `setCode` from WebSocket, the `value` prop updates the editor.
-    // It shouldn't trigger `onChange` usually in Monaco (unlike some inputs).
-    // But let's verify. Monaco React's `onChange` is usually only user interactions.
+    const handleLanguageChange = (e) => {
+        const newLang = e.target.value;
+        setLanguage(newLang);
+        if (problem && problem.starter_codes && problem.starter_codes[newLang]) {
+            setCode(problem.starter_codes[newLang]);
+        } else {
+            setCode('');
+        }
+        setOutput('');
+        setStatus('');
+    };
 
     const runCode = async () => {
-        if (!pyodide) return;
         setStatus('Running...');
         setOutput('');
 
         try {
-            // Capture stdout
-            let capturedOutput = "";
-            pyodide.setStdout({ batched: (msg) => capturedOutput += msg + "\n" });
+            if (language === 'python') {
+                if (!pyodide) {
+                    setStatus('Pyodide not loaded');
+                    return;
+                }
+                let capturedOutput = "";
+                pyodide.setStdout({ batched: (msg) => capturedOutput += msg + "\n" });
+                await pyodide.runPythonAsync(code);
+                setOutput(capturedOutput);
+                setStatus('Success');
 
-            await pyodide.runPythonAsync(code);
+            } else if (language === 'javascript') {
+                // Unsafe eval for demo purposes
+                let logs = [];
+                const originalLog = console.log;
+                console.log = (...args) => logs.push(args.join(' '));
 
-            setOutput(capturedOutput);
-            setStatus('Success');
+                try {
+                    // eslint-disable-next-line no-eval
+                    eval(code);
+                    setOutput(logs.join('\n'));
+                    setStatus('Success');
+                } catch (e) {
+                    setOutput(e.toString());
+                    setStatus('Error');
+                } finally {
+                    console.log = originalLog;
+                }
+
+            } else {
+                // Server-side execution (Mock)
+                const res = await fetch('http://localhost:8000/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, language })
+                });
+                const data = await res.json();
+                setOutput(data.output);
+                setStatus(data.status);
+            }
+
         } catch (err) {
             setOutput(err.toString());
             setStatus('Error');
@@ -106,24 +161,32 @@ export default function ProblemDetail() {
 
     return (
         <div className="problem-detail" style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '1rem', boxSizing: 'border-box' }}>
-            <div style={{ flex: '0 0 auto', marginBottom: '1rem' }}>
-                <h1>{problem.title}</h1>
-                <p>{problem.description}</p>
+            <div style={{ flex: '0 0 auto', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h1 style={{ margin: 0 }}>{problem.title}</h1>
+                    <p style={{ margin: 0 }}>{problem.description}</p>
+                </div>
+                <div>
+                    <select
+                        value={language}
+                        onChange={handleLanguageChange}
+                        style={{ padding: '0.5rem', borderRadius: '4px', background: '#333', color: 'white', border: '1px solid #555' }}
+                    >
+                        {LANGUAGES.map(lang => (
+                            <option key={lang.id} value={lang.id}>{lang.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div style={{ display: 'flex', flex: 1, gap: '1rem' }}>
                 <div style={{ flex: 2, border: '1px solid #444', borderRadius: '4px', overflow: 'hidden' }}>
                     <Editor
                         height="100%"
-                        defaultLanguage="python"
+                        language={language} // Monaco language
                         theme="vs-dark"
                         value={code}
-                        onChange={(value) => {
-                            setCode(value);
-                            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-                                ws.current.send(value);
-                            }
-                        }}
+                        onChange={handleEditorChange}
                         options={{
                             minimap: { enabled: false },
                             fontSize: 14,
@@ -133,8 +196,8 @@ export default function ProblemDetail() {
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ flex: '0 0 auto' }}>
-                        <button onClick={runCode} disabled={pyodideLoading || status === 'Running...'}>
-                            {pyodideLoading ? 'Loading Python...' : 'Run Code'}
+                        <button onClick={runCode} disabled={status === 'Running...'}>
+                            {status === 'Running...' ? 'Running...' : `Run ${LANGUAGES.find(l => l.id === language)?.name}`}
                         </button>
                     </div>
 

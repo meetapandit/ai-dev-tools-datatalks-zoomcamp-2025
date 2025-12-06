@@ -40,8 +40,28 @@ manager = ConnectionManager()
 
 # Mock Data
 problems = [
-    Problem(id="1", title="Two Sum", description="Return indices of the two numbers such that they add up to target.", initial_code="def two_sum(nums, target):\n    pass"),
-    Problem(id="2", title="Reverse String", description="Reverse the input string.", initial_code="def reverse_string(s):\n    pass")
+    Problem(
+        id="1", 
+        title="Two Sum", 
+        description="Return indices of the two numbers such that they add up to target.", 
+        starter_codes={
+            "python": "def two_sum(nums, target):\n    pass",
+            "javascript": "function twoSum(nums, target) {\n}",
+            "java": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        return new int[]{};\n    }\n}",
+            "go": "func twoSum(nums []int, target int) []int {\n    return nil\n}"
+        }
+    ),
+    Problem(
+        id="2", 
+        title="Reverse String", 
+        description="Reverse the input string.", 
+        starter_codes={
+            "python": "def reverse_string(s):\n    pass",
+            "javascript": "function reverseString(s) {\n}",
+            "java": "class Solution {\n    public String reverseString(String s) {\n        return \"\";\n    }\n}",
+            "go": "func reverseString(s string) string {\n    return \"\"\n}"
+        }
+    )
 ]
 
 @app.websocket("/ws/{problem_id}")

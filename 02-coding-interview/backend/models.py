@@ -5,7 +5,7 @@ class Problem(BaseModel):
     id: str
     title: str
     description: str
-    initial_code: str
+    starter_codes: dict[str, str]  # Map language -> code
 
 class CodeSubmission(BaseModel):
     code: str
