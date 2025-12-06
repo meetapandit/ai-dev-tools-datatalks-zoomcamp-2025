@@ -35,19 +35,27 @@ A real-time collaborative coding interview platform built with **FastAPI** (Back
 
 ## Running the Application
 
-1. **Start Backend**
+1. **Install Dependencies**
    ```bash
-   cd backend
-   uv run fastapi dev
+   npm install
    ```
-   Server will start at `http://localhost:8000`. API Docs at `/docs`.
 
-2. **Start Frontend**
+2. **Start Everything (Unified)**
    ```bash
-   cd frontend
    npm run dev
    ```
-   App will be available at `http://localhost:5173`.
+   - Backend: `http://localhost:8000`
+   - Frontend: `http://localhost:5173`
+
+### Alternative (Manual)
+1. **Start Backend**
+   ```bash
+   cd backend && uv run fastapi dev
+   ```
+2. **Start Frontend**
+   ```bash
+   cd frontend && npm run dev
+   ```
 
 ## Running Tests
 

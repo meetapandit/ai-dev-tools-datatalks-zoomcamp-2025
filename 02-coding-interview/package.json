@@ -1,0 +1,13 @@
+{
+  "name": "coding-interview-platform",
+  "version": "1.0.0",
+  "description": "Coding Interview Platform",
+  "scripts": {
+    "start:backend": "cd backend && uv run fastapi dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm:start:backend\" \"npm:start:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
